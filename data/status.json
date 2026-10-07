@@ -1,0 +1,13 @@
+{
+  "services": {
+    "orders-api":    {"status": "degraded", "error_rate_pct": 4.2, "p95_ms": 1830, "since": "2026-10-13T14:05:00Z", "note": "Elevated 5xx after 14:00 deploy"},
+    "payments-api":  {"status": "healthy",  "error_rate_pct": 0.1, "p95_ms": 210,  "since": "2026-10-10T09:00:00Z", "note": ""},
+    "inventory-api": {"status": "healthy",  "error_rate_pct": 0.3, "p95_ms": 340,  "since": "2026-10-12T18:30:00Z", "note": ""}
+  },
+  "deploys": [
+    {"service": "orders-api",    "revision": "orders-api-00042", "at": "2026-10-13T14:00:00Z", "by": "ci", "change": "Bump connection pool to 50"},
+    {"service": "orders-api",    "revision": "orders-api-00041", "at": "2026-10-09T11:20:00Z", "by": "ci", "change": "Add idempotency keys"},
+    {"service": "payments-api",  "revision": "payments-api-00117", "at": "2026-10-10T08:55:00Z", "by": "ci", "change": "Retry budget tuning"},
+    {"service": "inventory-api", "revision": "inventory-api-00063", "at": "2026-10-12T18:25:00Z", "by": "ci", "change": "Cache warmup"}
+  ]
+}
