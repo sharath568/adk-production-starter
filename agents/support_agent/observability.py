@@ -17,6 +17,8 @@ from google.adk.agents.callback_context import CallbackContext
 from google.adk.models import LlmRequest, LlmResponse
 from google.adk.tools import BaseTool, ToolContext
 
+from .tools.database import is_error
+
 log = logging.getLogger("agent")
 if not log.handlers:
     h = logging.StreamHandler(sys.stdout)
@@ -60,6 +62,7 @@ def after_tool_log(tool: BaseTool, args: dict, tool_context: ToolContext, tool_r
         agent=tool_context.agent_name,
         tool=tool.name,
         arg_keys=sorted(args),  # keys only: argument values can contain user data
-        blocked="error" in tool_response if isinstance(tool_response, dict) else False,
+        session_id=tool_context.session.id,  # joins with the MCP server's audit log
+        blocked=is_error(tool_response),
     )
     return None

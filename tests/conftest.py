@@ -3,6 +3,7 @@ and approvals are tested deterministically, with no API calls and no flakiness."
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from typing import AsyncGenerator
@@ -12,6 +13,9 @@ from google.adk.models import BaseLlm, LlmRequest, LlmResponse
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
+
+# ADK's MCP client otherwise probes Google credentials for mTLS on each connection (slow off-GCP).
+os.environ.setdefault("GOOGLE_API_USE_CLIENT_CERTIFICATE", "false")
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "agents"))
@@ -40,11 +44,12 @@ def say(text: str) -> types.Part:
 
 
 class Harness:
-    def __init__(self, script: list[types.Part], state: dict | None = None):
+    def __init__(self, script: list[types.Part], state: dict | None = None, mcp_db_url: str = ""):
         from support_agent.agent import build_app, build_root_agent
 
         self.llm = ScriptedLlm(model="scripted", script=list(script), requests=[])
-        self.app = build_app(build_root_agent(router_model=self.llm, specialist_model=self.llm))
+        self.app = build_app(build_root_agent(router_model=self.llm, specialist_model=self.llm,
+                                                     mcp_db_url=mcp_db_url))
         self.sessions = InMemorySessionService()
         self.runner = Runner(app=self.app, session_service=self.sessions)
         self.initial_state = state or {"tenant": "default"}
@@ -62,6 +67,9 @@ class Harness:
             out.append(e)
         self.events += out
         return out
+
+    async def close(self) -> None:
+        await self.runner.close()  # closes MCP sessions too
 
     async def state(self) -> dict:
         s = await self.sessions.get_session(app_name=self.app.name, user_id="u1", session_id=self.session_id)

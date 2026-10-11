@@ -11,6 +11,7 @@ from typing import Any
 from google.adk.tools import BaseTool, ToolContext
 
 from . import config
+from .tools.database import precheck_sql
 
 SEVERITIES = {"SEV1", "SEV2", "SEV3"}
 _SECRET = re.compile(r"(?i)(password|secret|token|api[_-]?key)\s*[:=]\s*\S+")
@@ -33,6 +34,11 @@ def before_tool(tool: BaseTool, args: dict[str, Any], tool_context: ToolContext)
         if sev not in SEVERITIES:
             return {"error": f"severity must be one of {sorted(SEVERITIES)}"}
         args["severity"] = sev  # normalize in place; the tool sees the cleaned value
+
+    if tool.name == "run_query":
+        problem = precheck_sql(str(args.get("sql", "")))
+        if problem:
+            return {"error": problem, "layer": "agent_precheck"}
     return None
 
 

@@ -14,6 +14,7 @@ SERVICE="${SERVICE:-support-agent}"
 SA_NAME="${SA_NAME:-agent-runtime}"
 SESSION_DB_URL="${SESSION_DB_URL:?set SESSION_DB_URL, e.g. postgresql+asyncpg://postgres:PASS@10.0.0.5:5432/postgres}"
 RAG_SERVICE="${RAG_SERVICE:-}"   # optional: name of the rag-api Cloud Run service
+MCP_DB_SERVICE="${MCP_DB_SERVICE:-}"   # optional: name of the gemini-mcp-db-server service (enables data_agent)
 LABELS="${LABELS:-app=adk-production-starter,purpose=gde}"
 SA="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 
@@ -34,12 +35,18 @@ else
   printf '%s' "$SESSION_DB_URL" | gcloud secrets create agent-session-db-url --data-file=-
 fi
 
-ENV_VARS="GOOGLE_GENAI_USE_VERTEXAI=true,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=$REGION,TRACE_TO_CLOUD=true"
+ENV_VARS="GOOGLE_GENAI_USE_VERTEXAI=true,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=$REGION,TRACE_TO_CLOUD=true,GOOGLE_API_USE_CLIENT_CERTIFICATE=false"
 if [[ -n "$RAG_SERVICE" ]]; then
   RAG_URL=$(gcloud run services describe "$RAG_SERVICE" --region="$REGION" --format='value(status.url)')
   ENV_VARS="$ENV_VARS,RAG_API_URL=$RAG_URL"
   # The agent calls the RAG service with its own identity. Grant exactly that, nothing broader.
   gcloud run services add-iam-policy-binding "$RAG_SERVICE" --region="$REGION" \
+    --member="serviceAccount:$SA" --role=roles/run.invoker >/dev/null
+fi
+if [[ -n "$MCP_DB_SERVICE" ]]; then
+  MCP_URL=$(gcloud run services describe "$MCP_DB_SERVICE" --region="$REGION" --format='value(status.url)')
+  ENV_VARS="$ENV_VARS,MCP_DB_URL=$MCP_URL/mcp"
+  gcloud run services add-iam-policy-binding "$MCP_DB_SERVICE" --region="$REGION" \
     --member="serviceAccount:$SA" --role=roles/run.invoker >/dev/null
 fi
 

@@ -13,6 +13,12 @@ SPECIALIST_MODEL = os.getenv("SPECIALIST_MODEL", "gemini-3.5-flash")
 # Point it at the vertex-alloydb-rag service to get hybrid search on AlloyDB.
 RAG_API_URL = os.getenv("RAG_API_URL", "")
 
+# The read-only MCP database server (gemini-mcp-db-server), e.g. https://mcp-db-server-xyz.run.app/mcp
+# or http://127.0.0.1:8080/mcp locally. Unset = no data_agent.
+MCP_DB_URL = os.getenv("MCP_DB_URL", "")
+# MCP tools the data agent may see. Everything else the server offers is filtered out.
+DB_TOOLS = tuple(t.strip() for t in os.getenv("DB_TOOLS", "list_views,describe_view,run_query").split(",") if t.strip())
+
 # Services the ops agent is allowed to touch. Anything else is rejected before the tool runs.
 ALLOWED_SERVICES = {
     s.strip() for s in os.getenv("ALLOWED_SERVICES", "orders-api,payments-api,inventory-api").split(",") if s.strip()
