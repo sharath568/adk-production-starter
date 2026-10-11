@@ -9,6 +9,7 @@ set -euo pipefail
 
 PROJECT_ID="${PROJECT_ID:?set PROJECT_ID}"
 REGION="${REGION:-us-central1}"
+GEMINI_LOCATION="${GEMINI_LOCATION:-global}"   # Gemini 3.5 is served from global only; Cloud Run stays in REGION
 NETWORK="${NETWORK:-default}"
 SERVICE="${SERVICE:-support-agent}"
 SA_NAME="${SA_NAME:-agent-runtime}"
@@ -35,7 +36,7 @@ else
   printf '%s' "$SESSION_DB_URL" | gcloud secrets create agent-session-db-url --data-file=-
 fi
 
-ENV_VARS="GOOGLE_GENAI_USE_VERTEXAI=true,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=$REGION,TRACE_TO_CLOUD=true,GOOGLE_API_USE_CLIENT_CERTIFICATE=false"
+ENV_VARS="GOOGLE_GENAI_USE_VERTEXAI=true,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=$GEMINI_LOCATION,TRACE_TO_CLOUD=true,GOOGLE_API_USE_CLIENT_CERTIFICATE=false"
 if [[ -n "$RAG_SERVICE" ]]; then
   RAG_URL=$(gcloud run services describe "$RAG_SERVICE" --region="$REGION" --format='value(status.url)')
   ENV_VARS="$ENV_VARS,RAG_API_URL=$RAG_URL"

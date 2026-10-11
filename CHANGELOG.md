@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.1 (October 2026)
+
+- Gemini location defaults to `global`: Gemini 3.5 returns 404 NOT_FOUND from `us-central1`.
+  `deploy.sh` takes `GEMINI_LOCATION` separately from the Cloud Run `REGION`.
+- Checked live: coordinator -> data_agent -> MCP server on Cloud Run -> Cloud SQL, Gemini 3.5 Flash-Lite.
+  Four questions (count, 3-way join revenue, delete request, injected row) took 17 model calls, about $0.009.
+
 ## v0.2.0 (October 2026)
 
 - `data_agent`: read-only business data through [gemini-mcp-db-server](https://github.com/sharath568/gemini-mcp-db-server)
