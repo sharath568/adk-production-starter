@@ -87,6 +87,13 @@ MCP_DB_SERVICE=mcp-db-server \
 
 Private service, its own least-privilege service account, session DB URL in Secret Manager, Direct VPC egress to the database, `roles/run.invoker` on the RAG and MCP database services and nothing broader. Pair it with [vertex-alloydb-rag](https://github.com/sharath568/vertex-alloydb-rag) for hybrid search on AlloyDB.
 
+## Troubleshooting
+
+**`Error on session runner task: unhandled errors in a TaskGroup (1 sub-exception)`** in the logs, but the answer is fine.
+One HTTP connection to the MCP server was dropped (the sub-exception is an `httpx` `ReadError`). It happens through `gcloud run services proxy` and around Cloud Run cold starts. The MCP client fails its whole session on any transport error; ADK logs this warning, opens a new session and retries once, so a single drop costs a few hundred ms and nothing else.
+
+If it fails twice in a row, ADK drops the toolset for that turn and the model sees `Tool 'list_views' not found`. If you see that, look at the network path (proxy, VPC egress, the server's instance limits), not the agent.
+
 ## Roadmap
 
 | Version | Adds | Article |
