@@ -17,6 +17,7 @@ from google.adk.agents.callback_context import CallbackContext
 from google.adk.models import LlmRequest, LlmResponse
 from google.adk.tools import BaseTool, ToolContext
 
+from . import usage as cost
 from .tools.database import is_error
 
 log = logging.getLogger("agent")
@@ -53,7 +54,17 @@ def after_model(callback_context: CallbackContext, llm_response: LlmResponse) ->
         cached_tokens=getattr(usage, "cached_content_token_count", None),
         function_calls=[p.function_call.name for p in parts if p.function_call],
     )
+    # Cost tally for eval runs; raises BudgetExceeded only when EVAL_COST_CAP_USD is set.
+    cost.record(llm_response.usage_metadata, _model_name(callback_context, llm_response))
     return None
+
+
+def _model_name(callback_context: CallbackContext, llm_response: LlmResponse) -> str:
+    version = getattr(llm_response, "model_version", None)
+    if version:
+        return version
+    model = getattr(callback_context._invocation_context.agent, "model", "")  # noqa: SLF001
+    return model if isinstance(model, str) else getattr(model, "model", "")
 
 
 def after_tool_log(tool: BaseTool, args: dict, tool_context: ToolContext, tool_response: dict) -> None:

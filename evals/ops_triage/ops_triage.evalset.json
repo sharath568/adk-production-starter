@@ -1,0 +1,159 @@
+{
+  "eval_set_id": "ops_triage",
+  "name": "ops_triage",
+  "eval_cases": [
+    {
+      "evalId": "orders_degraded",
+      "conversation": [
+        {
+          "invocationId": "orders_degraded-1",
+          "userContent": {
+            "parts": [
+              {
+                "text": "Checkout feels slow. Is orders-api ok?"
+              }
+            ],
+            "role": "user"
+          },
+          "finalResponse": {
+            "parts": [
+              {
+                "text": "orders-api is degraded: 4.2% errors and p95 1830 ms since 14:05. It started right after the 14:00 deploy orders-api-00042 (Bump connection pool to 50)."
+              }
+            ],
+            "role": "model"
+          },
+          "intermediateData": {
+            "toolUses": [
+              {
+                "args": {},
+                "name": "transfer_to_agent"
+              },
+              {
+                "args": {},
+                "name": "get_service_status"
+              },
+              {
+                "args": {},
+                "name": "list_recent_deploys"
+              }
+            ],
+            "toolResponses": [],
+            "intermediateResponses": []
+          },
+          "creationTimestamp": 0.0
+        }
+      ],
+      "sessionInput": {
+        "appName": "support_agent",
+        "userId": "eval",
+        "state": {
+          "tenant": "default"
+        }
+      },
+      "creationTimestamp": 0.0,
+      "finalSessionState": {}
+    },
+    {
+      "evalId": "orders_errors",
+      "conversation": [
+        {
+          "invocationId": "orders_errors-1",
+          "userContent": {
+            "parts": [
+              {
+                "text": "We're seeing a lot of 5xx from orders-api. What's going on?"
+              }
+            ],
+            "role": "user"
+          },
+          "finalResponse": {
+            "parts": [
+              {
+                "text": "orders-api is degraded with a 4.2% error rate since 14:05, five minutes after deploy orders-api-00042 at 14:00 (Bump connection pool to 50). That deploy is the likely cause."
+              }
+            ],
+            "role": "model"
+          },
+          "intermediateData": {
+            "toolUses": [
+              {
+                "args": {},
+                "name": "transfer_to_agent"
+              },
+              {
+                "args": {},
+                "name": "get_service_status"
+              },
+              {
+                "args": {},
+                "name": "list_recent_deploys"
+              }
+            ],
+            "toolResponses": [],
+            "intermediateResponses": []
+          },
+          "creationTimestamp": 0.0
+        }
+      ],
+      "sessionInput": {
+        "appName": "support_agent",
+        "userId": "eval",
+        "state": {
+          "tenant": "default"
+        }
+      },
+      "creationTimestamp": 0.0,
+      "finalSessionState": {}
+    },
+    {
+      "evalId": "what_changed",
+      "conversation": [
+        {
+          "invocationId": "what_changed-1",
+          "userContent": {
+            "parts": [
+              {
+                "text": "What were the last deploys of payments-api?"
+              }
+            ],
+            "role": "user"
+          },
+          "finalResponse": {
+            "parts": [
+              {
+                "text": "The latest payments-api deploy was payments-api-00117 at 08:55 on 2026-10-10: Retry budget tuning."
+              }
+            ],
+            "role": "model"
+          },
+          "intermediateData": {
+            "toolUses": [
+              {
+                "args": {},
+                "name": "transfer_to_agent"
+              },
+              {
+                "args": {},
+                "name": "list_recent_deploys"
+              }
+            ],
+            "toolResponses": [],
+            "intermediateResponses": []
+          },
+          "creationTimestamp": 0.0
+        }
+      ],
+      "sessionInput": {
+        "appName": "support_agent",
+        "userId": "eval",
+        "state": {
+          "tenant": "default"
+        }
+      },
+      "creationTimestamp": 0.0,
+      "finalSessionState": {}
+    }
+  ],
+  "creation_timestamp": 0.0
+}

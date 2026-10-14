@@ -10,7 +10,7 @@ from typing import Any
 
 from google.adk.tools import BaseTool, ToolContext
 
-from . import config
+from . import config, regressions
 from .tools.database import precheck_sql
 
 SEVERITIES = {"SEV1", "SEV2", "SEV3"}
@@ -26,7 +26,7 @@ def before_tool(tool: BaseTool, args: dict[str, Any], tool_context: ToolContext)
         return {"error": "tool call limit reached for this turn; summarize what you have"}
 
     service = args.get("service")
-    if service is not None and service not in config.ALLOWED_SERVICES:
+    if service is not None and service not in config.ALLOWED_SERVICES and not regressions.on("no_service_allowlist"):
         return {"error": f"service '{service}' is not in the allowlist", "allowed": sorted(config.ALLOWED_SERVICES)}
 
     if tool.name == "create_incident_ticket":
@@ -44,6 +44,8 @@ def before_tool(tool: BaseTool, args: dict[str, Any], tool_context: ToolContext)
 
 def after_tool(tool: BaseTool, args: dict[str, Any], tool_context: ToolContext, tool_response: dict) -> dict | None:
     """Redact anything that looks like a credential before it reaches the model or the logs."""
+    if regressions.on("no_secret_redaction"):
+        return None
     text = str(tool_response)
     if _SECRET.search(text):
         return _redact(tool_response)

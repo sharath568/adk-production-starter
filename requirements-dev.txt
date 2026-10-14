@@ -1,3 +1,5 @@
 -r requirements.txt
 pytest>=8
 pytest-asyncio>=0.23
+google-adk[eval]>=2.11,<3   # LocalEvalService and metrics for layer 2; not needed in the server image
+pyyaml>=6

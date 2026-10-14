@@ -22,7 +22,7 @@ Companion code for *"Building your first multi-agent system with ADK, the produc
    sessions ─► Postgres (AlloyDB / Cloud SQL) via DatabaseSessionService
 ```
 
-## What's in v0.2
+## What's in v0.3
 
 | Production concern | How it's handled | Where |
 |---|---|---|
@@ -40,14 +40,16 @@ Companion code for *"Building your first multi-agent system with ADK, the produc
 | Who's calling the DB | ID token for the private MCP service; session id in headers joins the server's audit log with ours | `tools/database.py` |
 | Too many tools | `McpToolset(tool_filter=...)`: the model sees 3 of the server's 4 tools | `tools/database.py`, `config.py` |
 | Destructive SQL | Agent-side precheck (SELECT only, one statement) before the request leaves; the server's guard and DB role are the real control | `guardrails.py` |
-| Regressions | 27 offline tests with a scripted model: routing, tools, guardrails, approvals, sessions, MCP | `tests/` |
+| Regressions | 43 offline tests with a scripted model: routing, tools, guardrails, approvals, sessions, MCP, tool and prompt contracts | `tests/` |
+| Model quality | Three-layer evals: offline tests, `adk eval` evalsets run N times with gates, a pinned judge model; plus 9 deliberate regressions to prove each layer earns its place | `evals/`, `judge/`, `tools/regress.py` |
+| Off-topic requests | Coordinator scope rule: decline in one sentence, don't transfer (found while writing the refusal evals) | `agent.py` |
 
 ## Quickstart
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
-pytest -q                      # offline, no credentials, ~2 seconds
+pytest -q                      # offline, no credentials, ~10 seconds
 
 # Talk to it with Gemini on Vertex AI
 gcloud auth application-default login
@@ -73,7 +75,64 @@ events = await h.send("check prod-database")
 assert "not in the allowlist" in tool_results(events, "get_service_status")[0]["error"]
 ```
 
-Model quality is tested separately with evals (coming in v0.3).
+That proves the wiring. It can't tell you whether Gemini makes the right moves. That's what the evals are for.
+
+## Evals: three layers, each with a gate
+
+```
+ make test     L1  scripted model + real tools/callbacks            every push, free, ~5 s
+ make eval     L2  adk evalsets x N runs -> pass rate per suite      nightly, Gemini, ~cents
+ make judge    L3  pinned judge model + versioned rubric             weekly / before release
+ make regress  break the agent 9 ways on purpose; which layer noticed?
+```
+
+**Layer 2** uses ADK's own evalsets (`evals/<suite>/<suite>.evalset.json`, built from the readable `evals/cases.yaml`) and ADK's `LocalEvalService`, so the same files work with `adk eval` and `adk web`. The runner adds what one `adk eval` doesn't: every case runs `--runs` times, results are pass rates with flaky cases listed, each suite has a gate (`evals/gate.yaml`), and the run stops at a cost cap (`EVAL_COST_CAP_USD`, default $0.50 per process).
+
+Each suite gets the trajectory rule that fits it:
+
+| Suite | Cases | Trajectory rule | Why |
+|---|---|---|---|
+| `knowledge` | 9 | `IN_ORDER`, args ignored | the agent writes its own search query |
+| `ops` | 4 | `IN_ORDER`, args compared | right specialist, right service name |
+| `ops_triage` | 3 | `IN_ORDER`, args ignored | an unhealthy service must get a deploy check (`limit=` varies) |
+| `approvals` | 3 | `IN_ORDER`, args ignored, no response check | must end in `adk_request_confirmation`: paused, no answer yet |
+| `refusals` | 4 | `EXACT`, empty | any tool call fails |
+| `data` | 4 | `IN_ORDER` | only when `MCP_DB_URL` is set |
+
+Three things learned while wiring this up, all checked against ADK 2.11:
+
+- In a multi-agent app, **`transfer_to_agent` is part of the trajectory**, so routing is tested by the same metric as tool use.
+- **`IN_ORDER` allows extra calls between the expected ones, but compares arguments with plain equality.** `list_recent_deploys(service=...)` and `list_recent_deploys(service=..., limit=3)` don't match. That's why `ops_triage` exists.
+- **An approval-gated tool shows up as two calls:** the tool, then `adk_request_confirmation`, and the turn ends with no final text. Response-match metrics are meaningless there, so that suite doesn't use one.
+
+`tests/test_eval_pipeline.py` runs every evalset through `LocalEvalService` offline with a scripted "golden" model that plays each case perfectly. If that passes, the evalsets, configs and real tools agree. A red nightly run then means the *model* changed behaviour, not that the harness is broken.
+
+**Layer 3** (`judge/run_judge.py`) scores the layer 2 transcripts against `judge/rubric.yaml`: grounded, cites the source, no false action, correct outcome (including ticket severity), scope, no secrets. The judge model is pinned and the rubric is versioned. Calibrate it against your own labels before you gate on it: `make labels`, label 30 rows, then `make calibrate` for agreement and Cohen's kappa. The judge setup comes from the companion repo [adk-eval-harness](https://github.com/sharath568/adk-eval-harness), where a cheaper judge turned out to be cheap because it was lenient.
+
+**Regressions** (`agents/support_agent/regressions.py`) are switches, not patches: `AGENT_REGRESSION=drop_scope_rule make eval`. Layer 1 so far, offline:
+
+| Regression | What changed | L1 |
+|---|---|---|
+| `drop_grounding_rule` | knowledge prompt loses "answer only from what the tool returns, cite the source" | **caught** (prompt contract) |
+| `soften_grounding_rule` | rules all still there, plus "if the docs are thin, fill in from general best practice" | missed |
+| `drop_scope_rule` | coordinator loses the out-of-scope rule | **caught** (prompt contract) |
+| `drop_deploy_check` | ops prompt loses "if it isn't healthy, also call list_recent_deploys" | **caught** (prompt contract) |
+| `vague_tool_docs` | every tool description becomes "Tool." | **caught** (tool contract) |
+| `no_service_allowlist` | allowlist check deleted from `before_tool` | **caught** |
+| `approval_off` | `require_confirmation` dropped from the ticket tool | **caught** (4 tests) |
+| `no_secret_redaction` | `after_tool` redaction deleted | **caught** |
+| `router_old_model` | router swapped to an older, smaller model | missed (the model is scripted) |
+
+The prompt-contract tests (`tests/test_contracts.py`) catch a *deleted* rule in milliseconds. They can't catch a rule that's still there but undermined (`soften_grounding_rule`), or a model that stops following it. Those two rows are the case for layers 2 and 3. Run `make regress` with Gemini credentials to fill in their columns.
+
+```bash
+export GOOGLE_GENAI_USE_VERTEXAI=true GOOGLE_CLOUD_PROJECT=your-project GOOGLE_CLOUD_LOCATION=global
+make eval RUNS=3      # layer 2, writes runs/<stamp>-baseline/
+make judge            # layer 3 on the latest run
+make regress          # all three layers x 9 regressions, writes runs/regressions.md (resumes if interrupted)
+```
+
+CI: `.github/workflows/ci.yml` runs layer 1 on every push. `.github/workflows/evals.yml` runs layer 2 nightly and layer 3 on Mondays, through Workload Identity Federation. It's skipped until you set the repository variables `GCP_WIF_PROVIDER`, `GCP_SERVICE_ACCOUNT` and `GCP_PROJECT_ID`, so forks stay green.
 
 ## Deploy to Cloud Run
 
@@ -99,8 +158,8 @@ If it fails twice in a row, ADK drops the toolset for that turn and the model se
 | Version | Adds | Article |
 |---|---|---|
 | v0.1 | Multi-agent core, guardrails, approvals, DB sessions, tests, Cloud Run | ADK multi-agent, the production way |
-| **v0.2** | MCP tools with least-privilege database access | Safe database access for Gemini agents through MCP |
-| v0.3 | Evaluation harness (trajectory + response) in CI | Testing ADK agents |
+| v0.2 | MCP tools with least-privilege database access | Safe database access for Gemini agents through MCP |
+| **v0.3** | Three-layer evals (scripted model, `adk eval` x N with gates, judge), contract tests, injected regressions | Testing ADK agents |
 | v0.4 | Text-to-SQL tool with guardrails | Text-to-SQL with Gemini |
 | v0.5 | Async human-in-the-loop approvals via Pub/Sub | Human-in-the-loop approvals for ADK agents |
 | v0.6 | Cost and latency controls | Cutting Gemini cost and latency |

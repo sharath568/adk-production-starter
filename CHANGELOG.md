@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.3.0 (October 2026)
+
+- Three-layer evals, ported from [adk-eval-harness](https://github.com/sharath568/adk-eval-harness):
+  - `evals/cases.yaml` -> ADK evalsets for six suites (knowledge, ops, ops_triage, approvals, refusals,
+    data), each with its own trajectory rule and a pass-rate gate in `evals/gate.yaml`
+  - `evals/run_evals.py`: `LocalEvalService` x N runs, pass rates, flaky cases, transcripts, cost cap
+  - `judge/run_judge.py` + `judge/rubric.yaml` (v1, pinned `gemini-3.5-flash`, thinking low);
+    `tools/calibrate_judge.py` for agreement and Cohen's kappa against your labels
+  - `tools/regress.py` + `regressions.py`: 9 deliberate regressions, results resumable per regression
+- Coordinator scope rule: off-topic requests are declined without a transfer (missing before; found
+  while writing the refusal cases)
+- `usage.py`: token and cost tally from `after_model`; raises only when `EVAL_COST_CAP_USD` is set
+- New offline tests (43 total): tool and prompt contracts, the eval pipeline with a scripted golden
+  model, evalset/cases sync, the judge runner with a fake client
+- `evals.yml`: nightly layer 2, weekly layer 3 via Workload Identity Federation; skipped without it
+
 ## v0.2.1 (October 2026)
 
 - Gemini location defaults to `global`: Gemini 3.5 returns 404 NOT_FOUND from `us-central1`.

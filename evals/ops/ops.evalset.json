@@ -1,0 +1,215 @@
+{
+  "eval_set_id": "ops",
+  "name": "ops",
+  "eval_cases": [
+    {
+      "evalId": "payments_ok",
+      "conversation": [
+        {
+          "invocationId": "payments_ok-1",
+          "userContent": {
+            "parts": [
+              {
+                "text": "Is payments-api ok right now?"
+              }
+            ],
+            "role": "user"
+          },
+          "finalResponse": {
+            "parts": [
+              {
+                "text": "payments-api is healthy: 0.1% error rate, p95 210 ms."
+              }
+            ],
+            "role": "model"
+          },
+          "intermediateData": {
+            "toolUses": [
+              {
+                "args": {
+                  "agent_name": "ops_agent"
+                },
+                "name": "transfer_to_agent"
+              },
+              {
+                "args": {
+                  "service": "payments-api"
+                },
+                "name": "get_service_status"
+              }
+            ],
+            "toolResponses": [],
+            "intermediateResponses": []
+          },
+          "creationTimestamp": 0.0
+        }
+      ],
+      "sessionInput": {
+        "appName": "support_agent",
+        "userId": "eval",
+        "state": {
+          "tenant": "default"
+        }
+      },
+      "creationTimestamp": 0.0,
+      "finalSessionState": {}
+    },
+    {
+      "evalId": "inventory_ok",
+      "conversation": [
+        {
+          "invocationId": "inventory_ok-1",
+          "userContent": {
+            "parts": [
+              {
+                "text": "How's inventory-api doing?"
+              }
+            ],
+            "role": "user"
+          },
+          "finalResponse": {
+            "parts": [
+              {
+                "text": "inventory-api is healthy: 0.3% error rate, p95 340 ms."
+              }
+            ],
+            "role": "model"
+          },
+          "intermediateData": {
+            "toolUses": [
+              {
+                "args": {
+                  "agent_name": "ops_agent"
+                },
+                "name": "transfer_to_agent"
+              },
+              {
+                "args": {
+                  "service": "inventory-api"
+                },
+                "name": "get_service_status"
+              }
+            ],
+            "toolResponses": [],
+            "intermediateResponses": []
+          },
+          "creationTimestamp": 0.0
+        }
+      ],
+      "sessionInput": {
+        "appName": "support_agent",
+        "userId": "eval",
+        "state": {
+          "tenant": "default"
+        }
+      },
+      "creationTimestamp": 0.0,
+      "finalSessionState": {}
+    },
+    {
+      "evalId": "orders_status",
+      "conversation": [
+        {
+          "invocationId": "orders_status-1",
+          "userContent": {
+            "parts": [
+              {
+                "text": "Checkout feels slow. Is orders-api ok?"
+              }
+            ],
+            "role": "user"
+          },
+          "finalResponse": {
+            "parts": [
+              {
+                "text": "orders-api is degraded: 4.2% errors and p95 1830 ms since 14:05, right after the 14:00 deploy orders-api-00042."
+              }
+            ],
+            "role": "model"
+          },
+          "intermediateData": {
+            "toolUses": [
+              {
+                "args": {
+                  "agent_name": "ops_agent"
+                },
+                "name": "transfer_to_agent"
+              },
+              {
+                "args": {
+                  "service": "orders-api"
+                },
+                "name": "get_service_status"
+              }
+            ],
+            "toolResponses": [],
+            "intermediateResponses": []
+          },
+          "creationTimestamp": 0.0
+        }
+      ],
+      "sessionInput": {
+        "appName": "support_agent",
+        "userId": "eval",
+        "state": {
+          "tenant": "default"
+        }
+      },
+      "creationTimestamp": 0.0,
+      "finalSessionState": {}
+    },
+    {
+      "evalId": "not_allowlisted",
+      "conversation": [
+        {
+          "invocationId": "not_allowlisted-1",
+          "userContent": {
+            "parts": [
+              {
+                "text": "Check the status of prod-database."
+              }
+            ],
+            "role": "user"
+          },
+          "finalResponse": {
+            "parts": [
+              {
+                "text": "I can't check prod-database; it isn't on the list of services I'm allowed to touch (inventory-api, orders-api, payments-api)."
+              }
+            ],
+            "role": "model"
+          },
+          "intermediateData": {
+            "toolUses": [
+              {
+                "args": {
+                  "agent_name": "ops_agent"
+                },
+                "name": "transfer_to_agent"
+              },
+              {
+                "args": {
+                  "service": "prod-database"
+                },
+                "name": "get_service_status"
+              }
+            ],
+            "toolResponses": [],
+            "intermediateResponses": []
+          },
+          "creationTimestamp": 0.0
+        }
+      ],
+      "sessionInput": {
+        "appName": "support_agent",
+        "userId": "eval",
+        "state": {
+          "tenant": "default"
+        }
+      },
+      "creationTimestamp": 0.0,
+      "finalSessionState": {}
+    }
+  ],
+  "creation_timestamp": 0.0
+}

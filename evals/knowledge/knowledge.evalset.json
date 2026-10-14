@@ -1,0 +1,439 @@
+{
+  "eval_set_id": "knowledge",
+  "name": "knowledge",
+  "eval_cases": [
+    {
+      "evalId": "rollback",
+      "conversation": [
+        {
+          "invocationId": "rollback-1",
+          "userContent": {
+            "parts": [
+              {
+                "text": "How do I roll back a bad deploy of orders-api?"
+              }
+            ],
+            "role": "user"
+          },
+          "finalResponse": {
+            "parts": [
+              {
+                "text": "Send 100 percent of traffic to the previous revision: `gcloud run services update-traffic orders-api --to-revisions=PREVIOUS=100`. Rollbacks don't need a change ticket (deploys.md#Rollback)."
+              }
+            ],
+            "role": "model"
+          },
+          "intermediateData": {
+            "toolUses": [
+              {
+                "args": {},
+                "name": "transfer_to_agent"
+              },
+              {
+                "args": {},
+                "name": "search_docs"
+              }
+            ],
+            "toolResponses": [],
+            "intermediateResponses": []
+          },
+          "creationTimestamp": 0.0
+        }
+      ],
+      "sessionInput": {
+        "appName": "support_agent",
+        "userId": "eval",
+        "state": {
+          "tenant": "default"
+        }
+      },
+      "creationTimestamp": 0.0,
+      "finalSessionState": {}
+    },
+    {
+      "evalId": "friday_deploy",
+      "conversation": [
+        {
+          "invocationId": "friday_deploy-1",
+          "userContent": {
+            "parts": [
+              {
+                "text": "Can I push a change to production this Friday afternoon?"
+              }
+            ],
+            "role": "user"
+          },
+          "finalResponse": {
+            "parts": [
+              {
+                "text": "No. Production deploys are Monday to Thursday, 10:00 to 16:00. No deploys on Fridays unless the change fixes a SEV1 (deploys.md#Release windows)."
+              }
+            ],
+            "role": "model"
+          },
+          "intermediateData": {
+            "toolUses": [
+              {
+                "args": {},
+                "name": "transfer_to_agent"
+              },
+              {
+                "args": {},
+                "name": "search_docs"
+              }
+            ],
+            "toolResponses": [],
+            "intermediateResponses": []
+          },
+          "creationTimestamp": 0.0
+        }
+      ],
+      "sessionInput": {
+        "appName": "support_agent",
+        "userId": "eval",
+        "state": {
+          "tenant": "default"
+        }
+      },
+      "creationTimestamp": 0.0,
+      "finalSessionState": {}
+    },
+    {
+      "evalId": "err_4021",
+      "conversation": [
+        {
+          "invocationId": "err_4021-1",
+          "userContent": {
+            "parts": [
+              {
+                "text": "What does ERR_4021 mean?"
+              }
+            ],
+            "role": "user"
+          },
+          "finalResponse": {
+            "parts": [
+              {
+                "text": "The payment gateway rejected the request because the idempotency key was reused. Don't retry with the same key; generate a new one (incidents.md#Error codes)."
+              }
+            ],
+            "role": "model"
+          },
+          "intermediateData": {
+            "toolUses": [
+              {
+                "args": {},
+                "name": "transfer_to_agent"
+              },
+              {
+                "args": {},
+                "name": "search_docs"
+              }
+            ],
+            "toolResponses": [],
+            "intermediateResponses": []
+          },
+          "creationTimestamp": 0.0
+        }
+      ],
+      "sessionInput": {
+        "appName": "support_agent",
+        "userId": "eval",
+        "state": {
+          "tenant": "default"
+        }
+      },
+      "creationTimestamp": 0.0,
+      "finalSessionState": {}
+    },
+    {
+      "evalId": "restore_time",
+      "conversation": [
+        {
+          "invocationId": "restore_time-1",
+          "userContent": {
+            "parts": [
+              {
+                "text": "How long does a full restore of the orders database take, and where should I restore it?"
+              }
+            ],
+            "role": "user"
+          },
+          "finalResponse": {
+            "parts": [
+              {
+                "text": "About 40 minutes. Open a change ticket, restore into a new instance named `orders-restore`, and validate row counts before switching traffic (backups.md#Restore)."
+              }
+            ],
+            "role": "model"
+          },
+          "intermediateData": {
+            "toolUses": [
+              {
+                "args": {},
+                "name": "transfer_to_agent"
+              },
+              {
+                "args": {},
+                "name": "search_docs"
+              }
+            ],
+            "toolResponses": [],
+            "intermediateResponses": []
+          },
+          "creationTimestamp": 0.0
+        }
+      ],
+      "sessionInput": {
+        "appName": "support_agent",
+        "userId": "eval",
+        "state": {
+          "tenant": "default"
+        }
+      },
+      "creationTimestamp": 0.0,
+      "finalSessionState": {}
+    },
+    {
+      "evalId": "backup_retention",
+      "conversation": [
+        {
+          "invocationId": "backup_retention-1",
+          "userContent": {
+            "parts": [
+              {
+                "text": "How long do we keep database backups?"
+              }
+            ],
+            "role": "user"
+          },
+          "finalResponse": {
+            "parts": [
+              {
+                "text": "35 days, in the `larkspur-db-backups` bucket (backups.md#Schedule)."
+              }
+            ],
+            "role": "model"
+          },
+          "intermediateData": {
+            "toolUses": [
+              {
+                "args": {},
+                "name": "transfer_to_agent"
+              },
+              {
+                "args": {},
+                "name": "search_docs"
+              }
+            ],
+            "toolResponses": [],
+            "intermediateResponses": []
+          },
+          "creationTimestamp": 0.0
+        }
+      ],
+      "sessionInput": {
+        "appName": "support_agent",
+        "userId": "eval",
+        "state": {
+          "tenant": "default"
+        }
+      },
+      "creationTimestamp": 0.0,
+      "finalSessionState": {}
+    },
+    {
+      "evalId": "rotate_password",
+      "conversation": [
+        {
+          "invocationId": "rotate_password-1",
+          "userContent": {
+            "parts": [
+              {
+                "text": "How do I rotate the orders database password early?"
+              }
+            ],
+            "role": "user"
+          },
+          "finalResponse": {
+            "parts": [
+              {
+                "text": "Add a new version of `orders-db-password` in Secret Manager, roll the service so it picks it up, then disable the old version after 24 hours (credentials.md#Database passwords)."
+              }
+            ],
+            "role": "model"
+          },
+          "intermediateData": {
+            "toolUses": [
+              {
+                "args": {},
+                "name": "transfer_to_agent"
+              },
+              {
+                "args": {},
+                "name": "search_docs"
+              }
+            ],
+            "toolResponses": [],
+            "intermediateResponses": []
+          },
+          "creationTimestamp": 0.0
+        }
+      ],
+      "sessionInput": {
+        "appName": "support_agent",
+        "userId": "eval",
+        "state": {
+          "tenant": "default"
+        }
+      },
+      "creationTimestamp": 0.0,
+      "finalSessionState": {}
+    },
+    {
+      "evalId": "sa_key",
+      "conversation": [
+        {
+          "invocationId": "sa_key-1",
+          "userContent": {
+            "parts": [
+              {
+                "text": "Can I create a service account key so my laptop script can call our APIs?"
+              }
+            ],
+            "role": "user"
+          },
+          "finalResponse": {
+            "parts": [
+              {
+                "text": "No. Never create service account keys. Use `gcloud auth login` and impersonation for one-off tasks (credentials.md#Service accounts)."
+              }
+            ],
+            "role": "model"
+          },
+          "intermediateData": {
+            "toolUses": [
+              {
+                "args": {},
+                "name": "transfer_to_agent"
+              },
+              {
+                "args": {},
+                "name": "search_docs"
+              }
+            ],
+            "toolResponses": [],
+            "intermediateResponses": []
+          },
+          "creationTimestamp": 0.0
+        }
+      ],
+      "sessionInput": {
+        "appName": "support_agent",
+        "userId": "eval",
+        "state": {
+          "tenant": "default"
+        }
+      },
+      "creationTimestamp": 0.0,
+      "finalSessionState": {}
+    },
+    {
+      "evalId": "canary",
+      "conversation": [
+        {
+          "invocationId": "canary-1",
+          "userContent": {
+            "parts": [
+              {
+                "text": "How does our canary rollout work?"
+              }
+            ],
+            "role": "user"
+          },
+          "finalResponse": {
+            "parts": [
+              {
+                "text": "New revisions start at 5 percent of traffic for 30 minutes. If the error rate stays under 1 percent, go to 50 percent, then 100 percent (deploys.md#Canary)."
+              }
+            ],
+            "role": "model"
+          },
+          "intermediateData": {
+            "toolUses": [
+              {
+                "args": {},
+                "name": "transfer_to_agent"
+              },
+              {
+                "args": {},
+                "name": "search_docs"
+              }
+            ],
+            "toolResponses": [],
+            "intermediateResponses": []
+          },
+          "creationTimestamp": 0.0
+        }
+      ],
+      "sessionInput": {
+        "appName": "support_agent",
+        "userId": "eval",
+        "state": {
+          "tenant": "default"
+        }
+      },
+      "creationTimestamp": 0.0,
+      "finalSessionState": {}
+    },
+    {
+      "evalId": "not_in_docs",
+      "conversation": [
+        {
+          "invocationId": "not_in_docs-1",
+          "userContent": {
+            "parts": [
+              {
+                "text": "What's our policy on on-call compensation?"
+              }
+            ],
+            "role": "user"
+          },
+          "finalResponse": {
+            "parts": [
+              {
+                "text": "I couldn't find anything about on-call compensation in the docs."
+              }
+            ],
+            "role": "model"
+          },
+          "intermediateData": {
+            "toolUses": [
+              {
+                "args": {},
+                "name": "transfer_to_agent"
+              },
+              {
+                "args": {},
+                "name": "search_docs"
+              }
+            ],
+            "toolResponses": [],
+            "intermediateResponses": []
+          },
+          "creationTimestamp": 0.0
+        }
+      ],
+      "sessionInput": {
+        "appName": "support_agent",
+        "userId": "eval",
+        "state": {
+          "tenant": "default"
+        }
+      },
+      "creationTimestamp": 0.0,
+      "finalSessionState": {}
+    }
+  ],
+  "creation_timestamp": 0.0
+}
